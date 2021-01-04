@@ -117,7 +117,7 @@ avatar:
   rounded: true
 
 social:
-  GitHub: https://github.com/next-theme || fab fa-github
+  GitHub: https://github.com/cdwxw || fab fa-github
   E-Mail: mailto:support@theme-next.org || fa fa-envelope
   RSS: /atom.xml || fa fa-rss
   Gitter: https://gitter.im/hexo-next || fab fa-gitter
@@ -161,7 +161,7 @@ symbols_count_time:
 
 post_edit:
   enable: true
-  url: https://github.com/next-theme/theme-next-docs/edit/master/source/
+  url: https://github.com/cdwxw/theme-next-docs/edit/master/source/
 
 
 # ============================================================= #
@@ -185,7 +185,7 @@ back2top:
 
 github_banner:
   enable: true
-  permalink: https://github.com/next-theme/hexo-theme-next
+  permalink: https://github.com/cdwxw/hexo-theme-next
   title: Fork NexT on GitHub
 
 
@@ -222,7 +222,7 @@ comments:
 
 disqus:
   enable: true
-  shortname: next-theme
+  shortname: cdwxw
   count: true
 
 
