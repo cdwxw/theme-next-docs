@@ -185,7 +185,7 @@ back2top:
 
 github_banner:
   enable: true
-  permalink: https://github.com/cdwxw/hexo-theme-next
+  permalink: https://github.com/cdwxw/theme-next-docs
   title: Fork NexT on GitHub
 
 
