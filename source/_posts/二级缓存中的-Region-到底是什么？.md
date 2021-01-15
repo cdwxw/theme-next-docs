@@ -69,3 +69,5 @@ public void set(String region, String key, Object value)
 1. 根据业务规划好不同的 region 来存放不同的缓存数据
 2. 根据实际情况确定每个 region 的缓存数据数量和 TTL 时间
 3. 尽量必要未经定义直接使用一个全新的 region （避免使用 default 数据）
+
+本文转载自：https://my.oschina.net/javayou/blog/3031773
