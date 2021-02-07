@@ -138,13 +138,19 @@ toc:
 # ============================================================= #
 
 footer:
-  since: 2014
+  since: 2020
   icon:
     name: fa fa-heart
     animated: true
     color: "#808080"
-  copyright: NexT
+  copyright: isee.wang
   powered: false
+  beian:
+    enable: true
+    icp: 蜀ICP备 19003348号-2
+#    gongan_id: 1234567890
+#    gongan_num: 京公网安备 1234567890号
+#    gongan_icon_url: /uploads/beian.png
 
 
 # ============================================================= #
@@ -152,16 +158,36 @@ footer:
 # ============================================================= #
 
 post_meta:
+  item_text: true
+  created_at: true
+  categories: true
   updated_at:
-    enable: false
+    enable: true
 
 symbols_count_time:
   separated_meta: true
   item_text_total: true
 
+tag_icon: true
+
 post_edit:
   enable: true
   url: https://github.com/cdwxw/theme-next-docs/edit/master/source/
+
+# Donate (Sponsor) settings
+# Front-matter variable (unsupport animation).
+reward_settings:
+  # If true, a donate button will be displayed in every article by default.
+  enable: false
+  animation: false
+  #comment: Buy me a coffee
+
+reward:
+  wechatpay: /images/wechatpay.png
+  alipay: /images/alipay.png
+  paypal: /images/paypal.png
+  bitcoin: /images/bitcoin.png
+  monero: /images/monero.png
 
 
 # ============================================================= #

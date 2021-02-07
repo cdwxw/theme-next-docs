@@ -2,9 +2,17 @@
 layout: post
 title: 二级缓存中的 Region 到底是什么？
 date: 2021-01-15 14:05:54
-tags: cache
-sticky: 101
+tags:
+- cache
+- redis
+- caffeine
+categories: cache
+sticky: 112
 ---
+
+阅读更多
+
+<!-- more -->
 
 不时有人来询问 J2Cache 里的 Region 到底是什么概念，这里做统一的解答。
 

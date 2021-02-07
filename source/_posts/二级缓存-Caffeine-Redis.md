@@ -2,9 +2,17 @@
 layout: post
 title: '二级缓存: Caffeine + Redis'
 date: 2021-01-15 11:29:38
-tags: cache
-sticky: 102
+tags:
+- cache
+- redis
+- caffeine
+categories: cache
+sticky: 111
 ---
+
+阅读更多
+
+<!-- more -->
 
 ## J2Cache
 

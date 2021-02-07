@@ -3,7 +3,15 @@ layout: post
 title: PaaS 平台
 date: 2021-01-05 13:42:49
 tags:
+- dgg
+- paas
+categories: paas
+sticky: 102
 ---
+
+阅读更多
+
+<!-- more -->
 
 ## 🌟 [Redis 组件](http://mindoc.dgg188.cn/docs/paas1_1/redisann)
 
