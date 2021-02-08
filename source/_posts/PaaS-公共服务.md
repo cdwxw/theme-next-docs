@@ -9,8 +9,7 @@ categories:
 - Paas
 ---
 
-**阅读更多**
-
+---
 <!-- more -->
 
 ## 🌟 [消息中心](http://mindoc.dgg188.cn/docs/msgcener/index)
