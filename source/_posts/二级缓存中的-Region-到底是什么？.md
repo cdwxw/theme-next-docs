@@ -3,14 +3,13 @@ layout: post
 title: 二级缓存中的 Region 到底是什么？
 date: 2021-01-15 14:05:54
 tags:
-- cache
-- redis
-- caffeine
-categories: cache
-sticky: 112
+- 转载
+categories:
+- Cache
+- J2Cache
 ---
 
-阅读更多
+**阅读更多**
 
 <!-- more -->
 

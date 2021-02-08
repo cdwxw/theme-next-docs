@@ -94,6 +94,8 @@ menu:
 
   Plugins: /plugins/ || fa fa-flask
   archives: /archives/ || fa fa-archive
+  categories: /categories/ || fa fa-th
+  tags: /tags/ || fa fa-tags
   #sitemap: /sitemap.xml || fa fa-sitemap
   #commonweal: /404/ || fa fa-heartbeat
 
@@ -151,6 +153,19 @@ footer:
 #    gongan_id: 1234567890
 #    gongan_num: 京公网安备 1234567890号
 #    gongan_icon_url: /uploads/beian.png
+
+
+# ============================================================= #
+# =============== Custom Pages Settings ======================= #
+# ============================================================= #
+
+# TagCloud settings for tags page.
+tagcloud:
+  min: 12 # Minimun font size in px
+  max: 30 # Maxium font size in px
+  amount: 200 # Total amount of tags
+  orderby: name # Order of tags
+  order: 1 # Sort order
 
 
 # ============================================================= #
