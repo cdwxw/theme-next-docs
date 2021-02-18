@@ -9,7 +9,8 @@ categories:
 - J2Cache
 ---
 
----
+<p>
+
 <!-- more -->
 
 不时有人来询问 J2Cache 里的 Region 到底是什么概念，这里做统一的解答。
