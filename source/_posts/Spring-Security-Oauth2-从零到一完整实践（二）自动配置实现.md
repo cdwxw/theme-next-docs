@@ -21,10 +21,10 @@ github 地址：[spring-security-oauth2-demo](https://github.com/cdwxw/spring-se
 
 1. [较为详细的学习 oauth2 的四种模式其中的两种授权模式](/Spring-Security-Oauth2-从零到一完整实践（一）/)
 2. spring boot oauth2 自动配置实现
-3. spring security oauth2 授权服务器配置
-4. spring security oauth2 资源服务器配置
-5. spring security oauth2 自定义授权模式（手机、邮箱等）
-6. spring security oauth2 踩坑记录
+3. [spring security oauth2 授权服务器配置](/Spring-Security-Oauth2-从零到一完整实践（三）授权服务器/)
+4. [spring security oauth2 资源服务器配置](/Spring-Security-Oauth2-从零到一完整实践（四）资源服务器/)
+5. [spring security oauth2 自定义授权模式（手机、邮箱等）](/Spring-Security-Oauth2-从零到一完整实践（五）自定义授权模式（手机、邮箱等）/)
+6. [spring security oauth2 踩坑记录](/Spring-Security-Oauth2-从零到一完整实践（六）踩坑记录/)
 
 ## spring boot oauth2 自动配置实现
 
