@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="5AUIVYTbHIAuz-eQtxSfZbWW5eg9_EVZMSQycIuXrG0">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.isee.wang","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.17.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"default"},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":true,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/config.min.js"></script>
+
+    <meta property="og:type" content="article">
+<meta property="og:title" content="ElasticSearch - function_score 系列文章（一）简介">
+<meta property="og:url" content="http://www.isee.wang/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="iSee Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-26T06:48:15.000Z">
+<meta property="article:modified_time" content="2023-06-05T01:22:42.494Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="ElasticSearch">
+<meta property="article:tag" content="function_score">
+<meta property="article:tag" content="相关度评分">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://www.isee.wang/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://www.isee.wang/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/","path":"ElasticSearch-function-score-系列文章（一）简介/","title":"ElasticSearch - function_score 系列文章（一）简介"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ElasticSearch - function_score 系列文章（一）简介 | iSee Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108155018-3"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-108155018-3","only_pageview":false}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/analytics/google-analytics.min.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="iSee Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">iSee Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-bell fa-fw"></i>首页</a></li><li class="menu-item menu-item-docs"><a href="/docs/" rel="section"><i class="fa fa-book fa-fw"></i>Docs</a></li><li class="menu-item menu-item-plugins"><a href="/plugins/" rel="section"><i class="fa fa-flask fa-fw"></i>Plugins</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">26</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">31</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="nav-number">1.</span> <span class="nav-text">系列文章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#function-score-%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.</span> <span class="nav-text">function_score 查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#function-score-%E6%8F%90%E4%BE%9B%E4%BA%86%E5%87%A0%E7%A7%8D%E5%8A%A0%E5%BC%BA-score-%E8%AE%A1%E7%AE%97%E7%9A%84%E5%87%BD%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">function_score 提供了几种加强 _score 计算的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#function-score-%E6%9F%A5%E8%AF%A2%E6%A8%A1%E6%9D%BF"><span class="nav-number">4.</span> <span class="nav-text">function_score 查询模板</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#function-scroe-%E5%85%B6%E4%BB%96%E8%BE%85%E5%8A%A9%E7%9A%84%E5%8F%82%E6%95%B0"><span class="nav-number">5.</span> <span class="nav-text">function_scroe 其他辅助的参数</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="John Doe"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cdwxw"><i class="fab fa-github fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnN1cHBvcnRAdGhlbWUtbmV4dC5vcmc=" title="E-Mail → mailto:support@theme-next.org"><i class="fa fa-envelope fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="fa fa-rss fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXR0ZXIuaW0vaGV4by1uZXh0" title="Gitter → https:&#x2F;&#x2F;gitter.im&#x2F;hexo-next"><i class="fab fa-gitter fa-fw"></i></span>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <span class="exturl cc-opacity" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC8="><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></span>
+  </div>
+<div class="cc-license animated" itemprop="sponsor">
+  <span class="exturl cc-opacity" title="Deploy with Netlify → https://www.netlify.com" data-url="aHR0cHM6Ly93d3cubmV0bGlmeS5jb20="><img width="80" src="https://www.netlify.com/img/global/badges/netlify-dark.svg" alt="Netlify"></span>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.isee.wang/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ElasticSearch - function_score 系列文章（一）简介 | iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ElasticSearch - function_score 系列文章（一）简介<span class="exturl post-edit-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcy9lZGl0L21hc3Rlci9zb3VyY2UvX3Bvc3RzL0VsYXN0aWNTZWFyY2gtZnVuY3Rpb24tc2NvcmUt57O75YiX5paH56ug77yI5LiA77yJ566A5LuLLm1k" title="编辑"><i class="fa fa-pen-nib"></i></span>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-26 14:48:15" itemprop="dateCreated datePublished" datetime="2021-08-26T14:48:15+08:00">2021-08-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-05 09:22:42" itemprop="dateModified" datetime="2023-06-05T09:22:42+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ElasticSearch/" itemprop="url" rel="index"><span itemprop="name">ElasticSearch</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="ElasticSearch-function-score-系列文章（一）简介/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><span id="more"></span>
+
+<div class="note info no-icon"><h2 id="系列文章"><a href="#系列文章" class="headerlink" title="系列文章"></a>系列文章</h2><ol>
+<li>ElasticSearch - function_score 系列文章（一）简介</li>
+<li><a href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%BA%8C%EF%BC%89field-value-factor-%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B">ElasticSearch - function_score 系列文章（二）field_value_factor 具体实例</a></li>
+<li><a href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%B8%89%EF%BC%89weight-%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B">ElasticSearch - function_score 系列文章（三）weight 具体实例</a></li>
+<li><a href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E5%9B%9B%EF%BC%89%E8%A1%B0%E5%87%8F%E5%87%BD%E6%95%B0-linear%E3%80%81exp%E3%80%81gauss-%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B">ElasticSearch - function_score 系列文章（四）衰减函数 linear、exp、gauss 具体实例</a></li>
+<li><a href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%BA%94%EF%BC%89%E8%AF%84%E4%BB%B7%E7%B3%BB%E7%BB%9F-%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B">ElasticSearch - function_score 系列文章（五）评价系统 具体实例</a></li>
+</ol>
+</div>
+
+
+<h2 id="function-score-查询"><a href="#function-score-查询" class="headerlink" title="function_score 查询"></a>function_score 查询</h2><ul>
+<li>在使用ES进行全文搜索时，默认情况下，返回的结果是按照 <code>相关性</code> 进行排序的——最相关的文档排在最前。为了按照相关性来排序，需要将相关性表示为一个数值。在 Elasticsearch 中， <code>相关性得分</code> 由一个浮点数进行表示，并在搜索结果中通过 <code>_score</code> 参数返回， 默认排序是 <code>_score</code> 降序。</li>
+<li><code>function_score 查询</code> 是用来控制评分过程的终极武器，它允许为每个与主查询匹配的文档应用一个函数，以达到改变甚至完全替换原始查询评分 <code>_score</code> 的目的。</li>
+<li>实际上，也能用过滤器对结果的 <code>子集</code> 应用不同的函数，这样一箭双雕：既能高效评分，又能利用过滤器缓存。</li>
+</ul>
+<h2 id="function-score-提供了几种加强-score-计算的函数"><a href="#function-score-提供了几种加强-score-计算的函数" class="headerlink" title="function_score 提供了几种加强 _score 计算的函数"></a>function_score 提供了几种加强 _score 计算的函数</h2><ol>
+<li><code>weight</code> : 为每个文档应用一个简单而不被规范化的权重提升值：当 weight 为 2 时，最终结果为 2 * _score 。</li>
+<li><code>field_value_factor</code> : 使用这个值来修改 _score ，如将 popularity 或 votes （受欢迎度或赞）作为考虑因素。</li>
+<li><code>random_score</code> : 为每个用户都使用一个不同的随机评分对结果排序，但对某一具体用户来说，看到的顺序始终是一致的。</li>
+<li><code>衰减函数 —— linear 、 exp 、 gauss</code> : 将浮动值结合到评分 _score 中，例如结合 publish_date 获得最近发布的文档，结合 geo_location 获得更接近某个具体经纬度（lat&#x2F;lon）地点的文档，结合 price 获得更接近某个特定价格的文档。</li>
+<li><code>script_score</code> : 如果需求超出以上范围时，用自定义脚本可以完全控制评分计算，实现所需逻辑。</li>
+</ol>
+<h2 id="function-score-查询模板"><a href="#function-score-查询模板" class="headerlink" title="function_score 查询模板"></a>function_score 查询模板</h2><ol>
+<li>如果要使用 function_score 改变分数，要使用 function_score 查询</li>
+<li>简单的说，就是在一个 function_score 内部 query 全文搜索得到的 _score 基础上，给他加上其他字段的评分标准，就能够得到把 &quot;全文搜索 + 其他字段&quot; 综合起来评分的效果</li>
+<li>单个加强函数的查询模板<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /mytest/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;function_score&quot;: &#123;</span><br><span class="line">            &quot;query&quot;: &#123;.....&#125;, //主查询，查询完后这里自己会有一个评分，就是old_score</span><br><span class="line">            &quot;field_value_factor&quot;: &#123;...&#125;, //在old_score的基础上，给他加强其他字段的评分，这里会产生一个加强score，如果只有一个加强function时，直接将加强函数名写在query下面就可以了</span><br><span class="line">            &quot;boost_mode&quot;: &quot;multiply&quot;, //指定用哪种方式结合old_score和加强score成为new_score</span><br><span class="line">            &quot;max_boost&quot;: 1.5 //限制加强score的最高分，但是不会限制old_score</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>多个加强函数的查询模板<ul>
+<li>如果有多个加强函数，那就要使用 functions 来包含这些加强函数们，functions 是一个数组，里面放着的是将要被使用的加强函数列表</li>
+<li>可以为 functions 里的加强函数指定一个 filter，这样做的话，只有在文档满足此 filter 的要求，此 filter 的加强函数才会应用到文挡上，也可以不指定 filter，这样的话此加强函数就会应用到全部的文挡上</li>
+<li>一个文档可以一次满足多条加强函数和多个 filter，如果一次满足多个，那么就会产生多个 加强score，因此 ES 会使用 score_mode 定义的方式来合并这些 加强score们，得到一个 总加强score，得到 总加强score之后，才会再使用 boost_mode 定义的方式去和 old_score 做合并</li>
+<li>像是下面的例子，field_value_factor 和 gauss 这两个加强函数会应用到所有文档上，而 weight 只会应用到满足 filter 的文档上，假设有个文档满足了 filter 的条件，那他就会得到 3 个 加强score，这 3 个 加强score 会使用 sum 的方式合并成一个 总加强score，然后才和 old_score 使用 multiply 的方式合并<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /mytest/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;function_score&quot;: &#123;</span><br><span class="line">            &quot;query&quot;: &#123;.....&#125;,</span><br><span class="line">            &quot;functions&quot;: [   //可以有多个加强函数(或是filter+加强函数)，每一个加强函数会产生一个加强score，因此functions会有多个加强score</span><br><span class="line">                &#123; &quot;field_value_factor&quot;: ... &#125;,</span><br><span class="line">                &#123; &quot;gauss&quot;: ... &#125;,</span><br><span class="line">                &#123; &quot;filter&quot;: &#123;...&#125;, &quot;weight&quot;: ... &#125;</span><br><span class="line">            ],</span><br><span class="line">            &quot;score_mode&quot;: &quot;sum&quot;, //决定加强score们怎么合并,</span><br><span class="line">            &quot;boost_mode&quot;: &quot;multiply&quot; //决定总加強score怎么和old_score合并</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>不要执着在调整 function_score 上<ul>
+<li>文档相关度的调整非常玄，<code>最相关的文档</code> 是一个难以触及的模糊概念，每个人对文档排序有着不同的想法，这很容易使人陷入持续反复调整，但是却没有明显的进展</li>
+<li>为了避免跳入这种死循环，在调整 function_score 时，一定要搭配监控用户操作，才有意义<ul>
+<li>像是如果返回的文档是用户想要的高相关的文档，那么用户就会选择前 10 个中的一个文档，得到想要的结果，反之，用户可能会来回点击，或是尝试新的搜索条件</li>
+<li>一旦有了这些监控手段，想要调适完美的 function_score 就不是问题</li>
+</ul>
+</li>
+<li>因此调整 function_score 的重点在于，要透过监控用户和用户互动，慢慢去调整我们的搜索条件，而不要妄想一步登天，第一次就把文档的相关度调整到最好，这几乎是不可能的，因为，连用户自己也不知道他自己想要什么</li>
+</ul>
+</li>
+</ol>
+<h2 id="function-scroe-其他辅助的参数"><a href="#function-scroe-其他辅助的参数" class="headerlink" title="function_scroe 其他辅助的参数"></a>function_scroe 其他辅助的参数</h2><ol>
+<li><code>boost_mode</code> : 决定 old_score 和 加强score 如何合并<ul>
+<li>multiply(默认) : new_score &#x3D; old_score * 加强score</li>
+<li>sum : new_score &#x3D; old_score + 加强score</li>
+<li>min : old_score 和 加强score 取较小值，new_score &#x3D; min(old_score, 加强score)</li>
+<li>max : old_score 和 加强score 取较大值，new_score &#x3D; max(old_score, 加强score)</li>
+<li>replace : 加强score直接替换掉 old_score，new_score &#x3D; 加强score</li>
+</ul>
+</li>
+<li><code>score_mode</code> : 决定 functions 里面的 加强score 们怎么合并，会先合并 加强score 们成一个 总加强score，再使用 总加强score 去和 old_score 做合并，换言之就是会先执行 score_mode，再执行 boost_mode<ul>
+<li>multiply (默认)</li>
+<li>sum</li>
+<li>avg</li>
+<li>first : 使用首个函数(可以有filter，也可以没有)的结果作为最终结果</li>
+<li>max</li>
+<li>min</li>
+</ul>
+</li>
+<li><code>max_boost</code> : 限制加强函数的最大效果，就是限制 加强score 最大能多少，但要注意不会限制 old_score<ul>
+<li>如果 加强score 超过了 max_boost 限制的值，会把 加强score 的值设成 max_boost 的值</li>
+<li>假设 加强score 是 5，而 max_boost 是 2，因为 加强score 超出了 max_boost 的限制，所以 max_boost 就会把 加强score 改为 2</li>
+<li>简单的说，就是 加强score &#x3D; min(加强score, max_boost)</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ElasticSearch/" rel="tag"><i class="fa fa-tag"></i> ElasticSearch</a>
+              <a href="/tags/function-score/" rel="tag"><i class="fa fa-tag"></i> function_score</a>
+              <a href="/tags/%E7%9B%B8%E5%85%B3%E5%BA%A6%E8%AF%84%E5%88%86/" rel="tag"><i class="fa fa-tag"></i> 相关度评分</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%85%AD%EF%BC%89%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" rel="prev" title="Spring Security Oauth2 从零到一完整实践（六）踩坑记录">
+                  <i class="fa fa-chevron-left"></i> Spring Security Oauth2 从零到一完整实践（六）踩坑记录
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/ElasticSearch-function-score-%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%EF%BC%88%E4%BA%8C%EF%BC%89field-value-factor-%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B/" rel="next" title="ElasticSearch - function_score 系列文章（二）field_value_factor 具体实例">
+                  ElasticSearch - function_score 系列文章（二）field_value_factor 具体实例 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><span class="exturl" data-url="aHR0cHM6Ly9iZWlhbi5taWl0Lmdvdi5jbg==">蜀ICP备 19003348号-2 </span>
+  </div>
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">isee.wang</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">113k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:43</span>
+  </span>
+</div><div class="footer-custom">
+Theme source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLXRoZW1lLW5leHQ=">here</span>&nbsp;
+Website source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLW5leHQuZ2l0aHViLmlv">here</span>
+</div>
+
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <span class="exturl github-corner" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcw==" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></span>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.8/medium-zoom.min.js" integrity="sha256-7PhEpEWEW0XXQ0k6kQrPKwuoIomz8R8IYyuU1Qew4P8=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/next-boot.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/pjax.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/search/local-search.min.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.4.3/mermaid.min.js","integrity":"sha256-e0o3JYsdjqKajf9eOe22FhioYSz9WofRY4dLKo3F6do="}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/tags/mermaid.min.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/math/mathjax.min.js"></script>
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"cdwxw","count":true,"i18n":{"disqus":"disqus"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/comments/disqus.min.js"></script>
+
+</body>
+</html>

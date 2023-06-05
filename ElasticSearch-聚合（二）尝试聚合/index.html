@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="5AUIVYTbHIAuz-eQtxSfZbWW5eg9_EVZMSQycIuXrG0">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.isee.wang","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.17.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"default"},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":true,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/config.min.js"></script>
+
+    <meta property="og:type" content="article">
+<meta property="og:title" content="ElasticSearch 聚合（二）尝试聚合">
+<meta property="og:url" content="http://www.isee.wang/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88/index.html">
+<meta property="og:site_name" content="iSee Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-10-18T03:38:06.000Z">
+<meta property="article:modified_time" content="2023-06-05T01:22:42.495Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="ElasticSearch">
+<meta property="article:tag" content="Aggregations">
+<meta property="article:tag" content="聚合">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://www.isee.wang/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://www.isee.wang/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88/","path":"ElasticSearch-聚合（二）尝试聚合/","title":"ElasticSearch 聚合（二）尝试聚合"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ElasticSearch 聚合（二）尝试聚合 | iSee Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108155018-3"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-108155018-3","only_pageview":false}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/analytics/google-analytics.min.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="iSee Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">iSee Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-bell fa-fw"></i>首页</a></li><li class="menu-item menu-item-docs"><a href="/docs/" rel="section"><i class="fa fa-book fa-fw"></i>Docs</a></li><li class="menu-item menu-item-plugins"><a href="/plugins/" rel="section"><i class="fa fa-flask fa-fw"></i>Plugins</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">26</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">31</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="nav-number">1.</span> <span class="nav-text">系列文章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88"><span class="nav-number">2.</span> <span class="nav-text">尝试聚合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%BA%A6%E9%87%8F%E6%8C%87%E6%A0%87"><span class="nav-number">2.1.</span> <span class="nav-text">添加度量指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E6%A1%B6"><span class="nav-number">2.2.</span> <span class="nav-text">嵌套桶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E4%BF%AE%E6%94%B9"><span class="nav-number">2.3.</span> <span class="nav-text">最后的修改</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="John Doe"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cdwxw"><i class="fab fa-github fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnN1cHBvcnRAdGhlbWUtbmV4dC5vcmc=" title="E-Mail → mailto:support@theme-next.org"><i class="fa fa-envelope fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="fa fa-rss fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXR0ZXIuaW0vaGV4by1uZXh0" title="Gitter → https:&#x2F;&#x2F;gitter.im&#x2F;hexo-next"><i class="fab fa-gitter fa-fw"></i></span>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <span class="exturl cc-opacity" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC8="><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></span>
+  </div>
+<div class="cc-license animated" itemprop="sponsor">
+  <span class="exturl cc-opacity" title="Deploy with Netlify → https://www.netlify.com" data-url="aHR0cHM6Ly93d3cubmV0bGlmeS5jb20="><img width="80" src="https://www.netlify.com/img/global/badges/netlify-dark.svg" alt="Netlify"></span>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.isee.wang/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ElasticSearch 聚合（二）尝试聚合 | iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ElasticSearch 聚合（二）尝试聚合<span class="exturl post-edit-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcy9lZGl0L21hc3Rlci9zb3VyY2UvX3Bvc3RzL0VsYXN0aWNTZWFyY2gt6IGa5ZCI77yI5LqM77yJ5bCd6K+V6IGa5ZCILm1k" title="编辑"><i class="fa fa-pen-nib"></i></span>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-10-18 11:38:06" itemprop="dateCreated datePublished" datetime="2021-10-18T11:38:06+08:00">2021-10-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-05 09:22:42" itemprop="dateModified" datetime="2023-06-05T09:22:42+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ElasticSearch/" itemprop="url" rel="index"><span itemprop="name">ElasticSearch</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="ElasticSearch-聚合（二）尝试聚合/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>7.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>7 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><span id="more"></span>
+
+<div class="note info no-icon"><h2 id="系列文章"><a href="#系列文章" class="headerlink" title="系列文章"></a>系列文章</h2><ol>
+<li><a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B">ElasticSearch 聚合（一）简介</a></li>
+<li><a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B0%9D%E8%AF%95%E8%81%9A%E5%90%88">ElasticSearch 聚合（二）尝试聚合</a></li>
+<li><a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%B8%89%EF%BC%89%E6%9D%A1%E5%BD%A2%E5%9B%BE">ElasticSearch 聚合（三）条形图</a></li>
+<li><a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E5%9B%9B%EF%BC%89%E5%9F%BA%E4%BA%8E%E8%8C%83%E5%9B%B4%E3%80%81%E8%BF%87%E6%BB%A4%E4%BB%A5%E5%8F%8A%E6%8E%92%E5%BA%8F%E7%9A%84%E8%81%9A%E5%90%88">ElasticSearch 聚合（四）基于范围、过滤以及排序的聚合</a></li>
+<li><a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%BA%94%EF%BC%89%E8%81%9A%E5%90%88%E7%A4%BA%E4%BE%8B">ElasticSearch 聚合（五）聚合示例</a></li>
+</ol>
+</div>
+
+<h2 id="尝试聚合"><a href="#尝试聚合" class="headerlink" title="尝试聚合"></a>尝试聚合</h2><p>我们可以用以下几页定义不同的聚合和它们的语法， 但学习聚合的最佳途径就是用实例来说明。 一旦我们获得了聚合的思想，以及如何合理地嵌套使用它们，那么语法就变得不那么重要了。</p>
+<div class="note warning"><p>聚合的桶操作和度量的完整用法可以在 <span class="exturl" data-url="aHR0cHM6Ly93d3cuZWxhc3RpYy5jby9ndWlkZS9lbi9lbGFzdGljc2VhcmNoL3JlZmVyZW5jZS83Lngvc2VhcmNoLWFnZ3JlZ2F0aW9ucy5odG1s">Elasticsearch 参考<i class="fa fa-external-link-alt"></i></span> 中找到。本章中会涵盖其中很多内容，但在阅读完本章后查看它会有助于我们对它的整体能力有所了解。</p>
+</div>
+
+<p>所以让我们先看一个例子。我们将会创建一些对汽车经销商有用的聚合，数据是关于汽车交易的信息：车型、制造商、售价、何时被出售等。</p>
+<p>首先我们批量索引一些数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /cars/_bulk</span><br><span class="line"></span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 10000, &quot;color&quot; : &quot;red&quot;, &quot;make&quot; : &quot;honda&quot;, &quot;sold&quot; : &quot;2014-10-28&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 20000, &quot;color&quot; : &quot;red&quot;, &quot;make&quot; : &quot;honda&quot;, &quot;sold&quot; : &quot;2014-11-05&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 30000, &quot;color&quot; : &quot;green&quot;, &quot;make&quot; : &quot;ford&quot;, &quot;sold&quot; : &quot;2014-05-18&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 15000, &quot;color&quot; : &quot;blue&quot;, &quot;make&quot; : &quot;toyota&quot;, &quot;sold&quot; : &quot;2014-07-02&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 12000, &quot;color&quot; : &quot;green&quot;, &quot;make&quot; : &quot;toyota&quot;, &quot;sold&quot; : &quot;2014-08-19&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 20000, &quot;color&quot; : &quot;red&quot;, &quot;make&quot; : &quot;honda&quot;, &quot;sold&quot; : &quot;2014-11-05&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 80000, &quot;color&quot; : &quot;red&quot;, &quot;make&quot; : &quot;bmw&quot;, &quot;sold&quot; : &quot;2014-01-01&quot; &#125;</span><br><span class="line">&#123; &quot;index&quot;: &#123;&#125;&#125;</span><br><span class="line">&#123; &quot;price&quot; : 25000, &quot;color&quot; : &quot;blue&quot;, &quot;make&quot; : &quot;ford&quot;, &quot;sold&quot; : &quot;2014-02-12&quot; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>有了数据，开始构建我们的第一个聚合。汽车经销商可能会想知道哪个颜色的汽车销量最好，用聚合可以轻易得到结果，用 <code>terms</code> 桶操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /cars/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;size&quot; : 0,</span><br><span class="line">    &quot;aggs&quot; : &#123;    ⑴</span><br><span class="line">        &quot;popular_colors&quot; : &#123;      ⑵</span><br><span class="line">            &quot;terms&quot; : &#123;      ⑶</span><br><span class="line">              &quot;field&quot; : &quot;color&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 聚合操作被置于顶层参数 aggs 之下（如果你愿意，完整形式 aggregations 同样有效）。
+⑵ 然后，可以为聚合指定一个我们想要名称，本例中是： popular_colors 。
+⑶ 最后，定义单个桶的类型 terms 。
+</code></pre>
+<p>聚合是在特定搜索结果背景下执行的， 这也就是说它只是查询请求的另外一个顶层参数（例如，使用 &#x2F;_search 端点）。 聚合可以与查询结对，但我们会晚些在 <a href="">限定聚合的范围（Scoping Aggregations）</a> 中来解决这个问题。</p>
+<div class="note warning"><p>可能会注意到我们将 size 设置成 0 。我们并不关心搜索结果的具体内容，所以将返回记录数设置为 0 来提高查询速度。 设置 size: 0 与 Elasticsearch 1.x 中使用 count 搜索类型等价。</p>
+</div>
+
+<p>然后我们为聚合定义一个名字，名字的选择取决于使用者，响应的结果会以我们定义的名字为标签，这样应用就可以解析得到的结果。</p>
+<p>随后我们定义聚合本身，在本例中，我们定义了一个单 terms 桶。 这个 terms 桶会为每个碰到的唯一词项动态创建新的桶。 因为我们告诉它使用 color 字段，所以 terms 桶会为每个颜色动态创建新桶。</p>
+<p>让我们运行聚合并查看结果：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">...</span><br><span class="line">   <span class="attr">&quot;hits&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;hits&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span>    ⑴</span><br><span class="line">   <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">   <span class="attr">&quot;aggregations&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;popular_colors&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>     ⑵</span><br><span class="line">         <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;red&quot;</span><span class="punctuation">,</span>    ⑶</span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">4</span>     ⑷</span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blue&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;green&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">         <span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">   <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 因为我们设置了 size 参数，所以不会有 hits 搜索结果返回。
+⑵ popular_colors 聚合是作为 aggregations 字段的一部分被返回的。
+⑶ 每个桶的 key 都与 color 字段里找到的唯一词对应。它总会包含 doc_count 字段，告诉我们包含该词项的文档数量。
+⑷ 每个桶的数量代表该颜色的文档数量。
+</code></pre>
+<p>响应包含多个桶，每个对应一个唯一颜色（例如：红 或 绿）。每个桶也包括 <code>聚合进</code> 该桶的所有文档的数量。例如，有四辆红色的车。</p>
+<p>前面的这个例子完全是实时执行的：一旦文档可以被搜到，它就能被聚合。这也就意味着我们可以直接将聚合的结果源源不断的传入图形库，然后生成实时的仪表盘。 不久，你又销售了一辆银色的车，我们的图形就会立即动态更新银色车的统计信息。</p>
+<p>瞧！这就是我们的第一个聚合！</p>
+<h3 id="添加度量指标"><a href="#添加度量指标" class="headerlink" title="添加度量指标"></a>添加度量指标</h3><p>前面的例子告诉我们每个桶里面的文档数量，这很有用。但通常，我们的应用需要提供更复杂的文档度量。 例如，每种颜色汽车的平均价格是多少？</p>
+<p>为了获取更多信息，我们需要告诉 Elasticsearch 使用哪个字段，计算何种度量。 这需要将度量 嵌套 在桶内， 度量会基于桶内的文档计算统计结果。</p>
+<p>让我们继续为汽车的例子加入 average 平均度量：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /cars/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">   &quot;size&quot; : 0,</span><br><span class="line">   &quot;aggs&quot;: &#123; </span><br><span class="line">      &quot;colors&quot;: &#123;</span><br><span class="line">         &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;color&quot;</span><br><span class="line">         &#125;,</span><br><span class="line">         &quot;aggs&quot;: &#123;    ⑴</span><br><span class="line">            &quot;avg_price&quot;: &#123;    ⑵</span><br><span class="line">               &quot;avg&quot;: &#123;</span><br><span class="line">                  &quot;field&quot;: &quot;price&quot;    ⑶</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 为度量新增 aggs 层。
+⑵ 为度量指定名字： avg_price 。
+⑶ 最后，为 price 字段定义 avg 度量。
+</code></pre>
+<p>正如所见，我们用前面的例子加入了新的 aggs 层。这个新的聚合层让我们可以将 avg 度量嵌套置于 terms 桶内。实际上，这就为每个颜色生成了平均价格。</p>
+<p>正如 颜色 的例子，我们需要给度量起一个名字（ avg_price ）这样可以稍后根据名字获取它的值。最后，我们指定度量本身（ avg ）以及我们想要计算平均值的字段（ price ）：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">...</span><br><span class="line">   <span class="attr">&quot;aggregations&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;colors&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">         <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;red&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>     ⑴</span><br><span class="line">                  <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">32500</span></span><br><span class="line">               <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blue&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                  <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">20000</span></span><br><span class="line">               <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;green&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                  <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">21000</span></span><br><span class="line">               <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">         <span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">   <span class="punctuation">&#125;</span></span><br><span class="line">...</span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 响应中的新字段 avg_price 。
+</code></pre>
+<p>尽管响应只发生很小改变，实际上我们获得的数据是增长了。之前，我们知道有四辆红色的车，现在，红色车的平均价格是 $32，500 美元。这个信息可以直接显示在报表或者图形中。</p>
+<h3 id="嵌套桶"><a href="#嵌套桶" class="headerlink" title="嵌套桶"></a>嵌套桶</h3><p>在我们使用不同的嵌套方案时，聚合的力量才能真正得以显现。 在前例中，我们已经看到如何将一个度量嵌入桶中，它的功能已经十分强大了。</p>
+<p>但真正令人激动的分析来自于将桶嵌套进 另外一个桶 所能得到的结果。 现在，我们想知道每个颜色的汽车制造商的分布：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /cars/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">   &quot;size&quot; : 0,</span><br><span class="line">   &quot;aggs&quot;: &#123;</span><br><span class="line">      &quot;colors&quot;: &#123;</span><br><span class="line">         &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;color&quot;</span><br><span class="line">         &#125;,</span><br><span class="line">         &quot;aggs&quot;: &#123;</span><br><span class="line">            &quot;avg_price&quot;: &#123;    ⑴</span><br><span class="line">               &quot;avg&quot;: &#123;</span><br><span class="line">                  &quot;field&quot;: &quot;price&quot;</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;make&quot;: &#123;     ⑵</span><br><span class="line">                &quot;terms&quot;: &#123;</span><br><span class="line">                    &quot;field&quot;: &quot;make&quot;     ⑶</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 注意前例中的 avg_price 度量仍然保持原位。
+⑵ 另一个聚合 make 被加入到了 color 颜色桶中。
+⑶ 这个聚合是 terms 桶，它会为每个汽车制造商生成唯一的桶。
+</code></pre>
+<p>这里发生了一些有趣的事。 首先，我们可能会观察到之前例子中的 avg_price 度量完全没有变化，还在原来的位置。 一个聚合的每个 <em>层级</em> 都可以有多个度量或桶， avg_price 度量告诉我们每种颜色汽车的平均价格。它与其他的桶和度量相互独立。</p>
+<p>这对我们的应用非常重要，因为这里面有很多相互关联，但又完全不同的度量需要收集。聚合使我们能够用一次数据请求获得所有的这些信息。</p>
+<p>另外一件值得注意的重要事情是我们新增的这个 make 聚合，它是一个 terms 桶（嵌套在 colors 、 terms 桶内）。这意味着它会为数据集中的每个唯一组合生成（ color 、 make ）元组。</p>
+<p>让我们看看返回的响应（为了简单我们只显示部分结果）：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">...</span><br><span class="line">   <span class="attr">&quot;aggregations&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;colors&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">         <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;red&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;make&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    ⑴</span><br><span class="line">                  <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                     <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;honda&quot;</span><span class="punctuation">,</span>   ⑵ </span><br><span class="line">                        <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">3</span></span><br><span class="line">                     <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                     <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bmw&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">                     <span class="punctuation">&#125;</span></span><br><span class="line">                  <span class="punctuation">]</span></span><br><span class="line">               <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                  <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">32500</span>    ⑶</span><br><span class="line">               <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 正如期望的那样，新的聚合嵌入在每个颜色桶中。
+⑵ 现在我们看见按不同制造商分解的每种颜色下车辆信息。
+⑶ 最终，我们看到前例中的 avg_price 度量仍然维持不变。
+</code></pre>
+<p>响应结果告诉我们以下几点：</p>
+<ul>
+<li>红色车有四辆。</li>
+<li>红色车的平均售价是 $32，500 美元。</li>
+<li>其中三辆是 Honda 本田制造，一辆是 BMW 宝马制造。</li>
+</ul>
+<h3 id="最后的修改"><a href="#最后的修改" class="headerlink" title="最后的修改"></a>最后的修改</h3><p>让我们回到话题的原点，在进入新话题之前，对我们的示例做最后一个修改， 为每个汽车生成商计算最低和最高的价格：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /cars/_search</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">   &quot;size&quot; : 0,</span><br><span class="line">   &quot;aggs&quot;: &#123;</span><br><span class="line">      &quot;colors&quot;: &#123;</span><br><span class="line">         &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;color&quot;</span><br><span class="line">         &#125;,</span><br><span class="line">         &quot;aggs&quot;: &#123;</span><br><span class="line">            &quot;avg_price&quot;: &#123; &quot;avg&quot;: &#123; &quot;field&quot;: &quot;price&quot; &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;make&quot; : &#123;</span><br><span class="line">                &quot;terms&quot; : &#123;</span><br><span class="line">                    &quot;field&quot; : &quot;make&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;aggs&quot; : &#123;    ⑴</span><br><span class="line">                    &quot;min_price&quot; : &#123; &quot;min&quot;: &#123; &quot;field&quot;: &quot;price&quot;&#125; &#125;,   ⑵ </span><br><span class="line">                    &quot;max_price&quot; : &#123; &quot;max&quot;: &#123; &quot;field&quot;: &quot;price&quot;&#125; &#125;    ⑶</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>⑴ 我们需要增加另外一个嵌套的 aggs 层级。
+⑵ 然后包括 min 最小度量。
+⑶ 以及 max 最大度量。
+</code></pre>
+<p>得到以下输出（只显示部分结果）：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">...</span><br><span class="line">   <span class="attr">&quot;aggregations&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;colors&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">         <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">               <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;red&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;make&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                  <span class="attr">&quot;buckets&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                     <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;honda&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;min_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                           <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">10000</span>     ⑴</span><br><span class="line">                        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;max_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                           <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">20000</span>     ⑵</span><br><span class="line">                        <span class="punctuation">&#125;</span></span><br><span class="line">                     <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                     <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bmw&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;doc_count&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;min_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                           <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">80000</span></span><br><span class="line">                        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;max_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                           <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">80000</span></span><br><span class="line">                        <span class="punctuation">&#125;</span></span><br><span class="line">                     <span class="punctuation">&#125;</span></span><br><span class="line">                  <span class="punctuation">]</span></span><br><span class="line">               <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                  <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="number">32500</span></span><br><span class="line">               <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<pre><code>⑴⑵ min 和 max 度量现在出现在每个汽车制造商（ make ）下面。
+</code></pre>
+<p>有了这两个桶，我们可以对查询的结果进行扩展并得到以下信息：</p>
+<ul>
+<li>有四辆红色车。</li>
+<li>红色车的平均售价是 $32，500 美元。</li>
+<li>其中三辆红色车是 Honda 本田制造，一辆是 BMW 宝马制造。</li>
+<li>最便宜的红色本田售价为 $10，000 美元。</li>
+<li>最贵的红色本田售价为 $20，000 美元。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ElasticSearch/" rel="tag"><i class="fa fa-tag"></i> ElasticSearch</a>
+              <a href="/tags/Aggregations/" rel="tag"><i class="fa fa-tag"></i> Aggregations</a>
+              <a href="/tags/%E8%81%9A%E5%90%88/" rel="tag"><i class="fa fa-tag"></i> 聚合</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%B8%80%EF%BC%89%E7%AE%80%E4%BB%8B/" rel="prev" title="ElasticSearch 聚合（一）简介">
+                  <i class="fa fa-chevron-left"></i> ElasticSearch 聚合（一）简介
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/ElasticSearch-%E8%81%9A%E5%90%88%EF%BC%88%E4%B8%89%EF%BC%89%E6%9D%A1%E5%BD%A2%E5%9B%BE/" rel="next" title="ElasticSearch 聚合（三）条形图">
+                  ElasticSearch 聚合（三）条形图 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><span class="exturl" data-url="aHR0cHM6Ly9iZWlhbi5taWl0Lmdvdi5jbg==">蜀ICP备 19003348号-2 </span>
+  </div>
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">isee.wang</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">113k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:43</span>
+  </span>
+</div><div class="footer-custom">
+Theme source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLXRoZW1lLW5leHQ=">here</span>&nbsp;
+Website source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLW5leHQuZ2l0aHViLmlv">here</span>
+</div>
+
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <span class="exturl github-corner" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcw==" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></span>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.8/medium-zoom.min.js" integrity="sha256-7PhEpEWEW0XXQ0k6kQrPKwuoIomz8R8IYyuU1Qew4P8=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/next-boot.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/pjax.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/search/local-search.min.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.4.3/mermaid.min.js","integrity":"sha256-e0o3JYsdjqKajf9eOe22FhioYSz9WofRY4dLKo3F6do="}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/tags/mermaid.min.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/math/mathjax.min.js"></script>
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"cdwxw","count":true,"i18n":{"disqus":"disqus"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/comments/disqus.min.js"></script>
+
+</body>
+</html>

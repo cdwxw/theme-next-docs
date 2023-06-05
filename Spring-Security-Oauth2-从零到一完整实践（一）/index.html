@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="5AUIVYTbHIAuz-eQtxSfZbWW5eg9_EVZMSQycIuXrG0">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.isee.wang","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.17.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"default"},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":true,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/config.min.js"></script>
+
+    <meta property="og:type" content="article">
+<meta property="og:title" content="Spring Security Oauth2 从零到一完整实践（一）">
+<meta property="og:url" content="http://www.isee.wang/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="iSee Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/1.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/2.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/3.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/4.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/5.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/6.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/7.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/8.png">
+<meta property="og:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/9.png">
+<meta property="article:published_time" content="2021-04-19T01:07:50.000Z">
+<meta property="article:modified_time" content="2023-06-05T01:22:42.496Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Security">
+<meta property="article:tag" content="Oauth2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.isee.wang/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/1.png">
+
+
+<link rel="canonical" href="http://www.isee.wang/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://www.isee.wang/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/","path":"Spring-Security-Oauth2-从零到一完整实践（一）/","title":"Spring Security Oauth2 从零到一完整实践（一）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Spring Security Oauth2 从零到一完整实践（一） | iSee Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108155018-3"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-108155018-3","only_pageview":false}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/analytics/google-analytics.min.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="iSee Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">iSee Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-bell fa-fw"></i>首页</a></li><li class="menu-item menu-item-docs"><a href="/docs/" rel="section"><i class="fa fa-book fa-fw"></i>Docs</a></li><li class="menu-item menu-item-plugins"><a href="/plugins/" rel="section"><i class="fa fa-flask fa-fw"></i>Plugins</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">26</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">31</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="nav-number">1.</span> <span class="nav-text">系列文章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%84%E5%A4%87%E7%9F%A5%E8%AF%86"><span class="nav-number">2.</span> <span class="nav-text">预备知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Oauth2"><span class="nav-number">3.</span> <span class="nav-text">Oauth2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%BA%94%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">传统应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%9C%A8%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">现在的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%92%E8%89%B2"><span class="nav-number">6.</span> <span class="nav-text">角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E7%A7%8D%E6%8E%88%E6%9D%83%E6%A8%A1%E5%BC%8F"><span class="nav-number">7.</span> <span class="nav-text">四种授权模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%8A%A0%E5%AF%86"><span class="nav-number">8.</span> <span class="nav-text">客户端加密</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%88%E6%9D%83%E7%A0%81%E6%A8%A1%E5%BC%8F"><span class="nav-number">8.1.</span> <span class="nav-text">授权码模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%88%E6%9D%83%E7%AB%AF%E7%82%B9"><span class="nav-number">8.2.</span> <span class="nav-text">授权端点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A4%E7%89%8C%E7%AB%AF%E7%82%B9"><span class="nav-number">8.3.</span> <span class="nav-text">令牌端点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F"><span class="nav-number">9.</span> <span class="nav-text">密码模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A4%E7%89%8C%E7%AB%AF%E7%82%B9-1"><span class="nav-number">9.1.</span> <span class="nav-text">令牌端点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E8%80%83%E8%99%91"><span class="nav-number">10.</span> <span class="nav-text">安全考虑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="nav-number">11.</span> <span class="nav-text">技术选型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E8%BF%99%E4%B9%8B%E5%89%8D"><span class="nav-number">12.</span> <span class="nav-text">在这之前</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="John Doe"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cdwxw"><i class="fab fa-github fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnN1cHBvcnRAdGhlbWUtbmV4dC5vcmc=" title="E-Mail → mailto:support@theme-next.org"><i class="fa fa-envelope fa-fw"></i></span>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="fa fa-rss fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXR0ZXIuaW0vaGV4by1uZXh0" title="Gitter → https:&#x2F;&#x2F;gitter.im&#x2F;hexo-next"><i class="fab fa-gitter fa-fw"></i></span>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <span class="exturl cc-opacity" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC8="><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></span>
+  </div>
+<div class="cc-license animated" itemprop="sponsor">
+  <span class="exturl cc-opacity" title="Deploy with Netlify → https://www.netlify.com" data-url="aHR0cHM6Ly93d3cubmV0bGlmeS5jb20="><img width="80" src="https://www.netlify.com/img/global/badges/netlify-dark.svg" alt="Netlify"></span>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.isee.wang/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Spring Security Oauth2 从零到一完整实践（一） | iSee Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Security Oauth2 从零到一完整实践（一）<span class="exturl post-edit-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcy9lZGl0L21hc3Rlci9zb3VyY2UvX3Bvc3RzL1NwcmluZy1TZWN1cml0eS1PYXV0aDIt5LuO6Zu25Yiw5LiA5a6M5pW05a6e6Le177yI5LiA77yJLm1k" title="编辑"><i class="fa fa-pen-nib"></i></span>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-19 09:07:50" itemprop="dateCreated datePublished" datetime="2021-04-19T09:07:50+08:00">2021-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-05 09:22:42" itemprop="dateModified" datetime="2023-06-05T09:22:42+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="Spring-Security-Oauth2-从零到一完整实践（一）/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>8.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>
+
+<span id="more"></span>
+
+<div class="note info no-icon"><p>github 地址：<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3NwcmluZy1zZWN1cml0eS1vYXV0aDItZGVtbw==">spring-security-oauth2-demo<i class="fa fa-external-link-alt"></i></span></p>
+<p>博客地址：<a href="/">isee.wang</a></p>
+</div>
+
+<h2 id="系列文章"><a href="#系列文章" class="headerlink" title="系列文章"></a>系列文章</h2><ol>
+<li>较为详细的学习 oauth2 的四种模式其中的两种授权模式</li>
+<li><a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%BA%8C%EF%BC%89%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%AE%9E%E7%8E%B0/">spring boot oauth2 自动配置实现</a></li>
+<li><a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%89%EF%BC%89%E6%8E%88%E6%9D%83%E6%9C%8D%E5%8A%A1%E5%99%A8/">spring security oauth2 授权服务器配置</a></li>
+<li><a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%9B%9B%EF%BC%89%E8%B5%84%E6%BA%90%E6%9C%8D%E5%8A%A1%E5%99%A8/">spring security oauth2 资源服务器配置</a></li>
+<li><a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%BA%94%EF%BC%89%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%88%E6%9D%83%E6%A8%A1%E5%BC%8F%EF%BC%88%E6%89%8B%E6%9C%BA%E3%80%81%E9%82%AE%E7%AE%B1%E7%AD%89%EF%BC%89/">spring security oauth2 自定义授权模式（手机、邮箱等）</a></li>
+<li><a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%85%AD%EF%BC%89%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">spring security oauth2 踩坑记录</a></li>
+</ol>
+<h2 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h2><p>具备以下基础知识能够方便你更好的阅读本篇文章</p>
+<ul>
+<li>spring 基础</li>
+<li>spring boot web 的使用与配置</li>
+<li>spring security 的使用与配置</li>
+<li>postman 的使用</li>
+<li>idea、maven、lombok 的使用与配置</li>
+</ul>
+<h2 id="Oauth2"><a href="#Oauth2" class="headerlink" title="Oauth2"></a>Oauth2</h2><p>学习一项新的东西之前，我们要先了解一下他为我们解决了哪些事，能够带来什么样的便利，而在 IT 行业，了解一个东西最简单的方式就是去他的官网了解，所以我们先去官网了解一下这个协议：<span class="exturl" data-url="aHR0cHM6Ly9vYXV0aC5uZXQv">Oauth2<i class="fa fa-external-link-alt"></i></span></p>
+<div class="note info"><p>An <code>open protocol</code> to allow <code>secure authorization</code> in a <code>simple</code> and <code>standard</code> method from web, mobile and desktop applications.</p>
+</div>
+
+<p>一个允许从Web、移动和桌面应用程序简单和标准方法进行安全授权的开放协议。</p>
+<div class="note info"><p>The OAuth 2.0 authorization framework enables third-party applications to obtain <code>limited</code> access to a web service.</p>
+</div>
+
+<p>OAuth 2.0 授权框架使第三方应用程序能够获得对 Web 服务的有限访问权限。</p>
+<p>从官网的解释就可以知道它可以完成如下两件事：</p>
+<ol>
+<li>对你的应用站点进行安全授权</li>
+<li>使第三方应用程序能够获得对 Web 服务的有限访问权限</li>
+</ol>
+<p>我们这篇教程就是通过 spring security oauth2 来完成这么两件事。我们来详细了解一下这个协议，首先了解什么要使用 oauth2。我们以 web 为例来进行了解。</p>
+<h2 id="传统应用"><a href="#传统应用" class="headerlink" title="传统应用"></a>传统应用</h2><p>在我们传统的 web 应用中，我们的前端页面和后端的逻辑都是一起部署的，大概流程如下：</p>
+<p><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/1.png" loading="lazy"></p>
+<p>当我们发送一个请求的时候，直接先发给后端处理，后端处理完成后将数据发送给前端，然后前端渲染，再交给用户，所以有了模板引擎这个东西，例如 jsp、thymeleaf、freemarker 这些，都是这样的流程。而这些个东西最为重要的就是 session，你可以通过存储在 session 里面的东西对他进行授权&#x2F;认证等操作，大概如下：</p>
+<p><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/2.png" loading="lazy"></p>
+<h2 id="现在的应用"><a href="#现在的应用" class="headerlink" title="现在的应用"></a>现在的应用</h2><p>那么现在我们的应用是什么样的呢？现在的前端已经不再是只有 html、css、javascript 了，也不再是 bootstrap 的天下，也没有 jquery 一出，万人空巷了。前端项目组建工程化，已经能够完整的独立成为一个工程化的项目了。所以我们现在前后端是完全分离的，<strong>前后端各司其职，前端完成前端的事，只做页面，后端完成后端的事，只做逻辑和数据库操作，完全两个独立的引用，通过接口进行交互，</strong>那么我们的大概流程如下：</p>
+<p><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/3.png" loading="lazy"></p>
+<p>用户通过浏览器请求前端应用的页面，然后页面里面加载请求到数据，再渲染页面。那么现在的授权没有 session 了，前后端是完全独立的两个项目了，我们要怎么进行认证授权呢？对于一个受保护的应用来说，他的请求流程如下：</p>
+<p><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/4.png" loading="lazy"></p>
+<p>在这个流程中，我们后端应用其实变成了两个，一个是<code>授权服务器</code>，一个是<code>资源服务器</code>，<strong>当然你完全可以简单把他们两个同时写在一个之中。</strong>单独提出来的好处是什么呢？最主要的一点就是上面提到的 <strong>使第三方应用程序能够获得对 Web 服务的有限访问权限，简单的说就是能够更加方便的另外一个应用接入。当你写好一个授权服务器以后，其他应用就可以共用这个授权服务器，</strong>他们就作为资源服务器亦或是客户端即可。</p>
+<h2 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h2><p>在这个协议中，我们需要明确一个 <code>角色</code> 的概念，在前面的和传统应用的对比中，我们提到了资源服务器和授权服务器，这就是其中两个角色，在 Oauth2 中，总共有四种角色：</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">英文名</th>
+<th align="center">描述</th>
+<th align="center">web例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">资源所有者</td>
+<td align="center">resource owner</td>
+<td align="center">能够授予对受保护资源的访问权的实体。当资源所有者是一个人时，它就是用户。</td>
+<td align="center">用户</td>
+</tr>
+<tr>
+<td align="center">资源服务器</td>
+<td align="center">resource server</td>
+<td align="center">承载受保护资源的服务器，能够使用访问令牌接受和响应受保护资源请求。</td>
+<td align="center">后端资源数据</td>
+</tr>
+<tr>
+<td align="center">客户端</td>
+<td align="center">client</td>
+<td align="center">代表资源所有者及其授权发出受保护资源请求的应用程序。“客户端” 并不意味着任何特定的实现特征(例如，应用程序是否在服务器、桌面或其他设备上执行)。</td>
+<td align="center">前端应用</td>
+</tr>
+<tr>
+<td align="center">授权服务器</td>
+<td align="center">authorization server</td>
+<td align="center">在成功认证资源所有者并获得授权后，服务器向客户端发出访问令牌。</td>
+<td align="center">后端授权</td>
+</tr>
+</tbody></table>
+<p>而授权服务器可以是与资源服务器<strong>相同的服务器</strong>或<strong>单独的服务器</strong>。 单个授权服务器可以发出由<strong>多个资源服务器接受的访问令牌</strong>。</p>
+<p>流程图大概如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+--------+                               +-----------------+</span><br><span class="line">|        |--（A）------- 授权请求 --------&gt;|                 |</span><br><span class="line">|        |                               | 资源所有者（用户） |</span><br><span class="line">|        |&lt;-（B）------- 授权许可 ---------|                 |</span><br><span class="line">|        |                               +-----------------+</span><br><span class="line">|        |</span><br><span class="line">|        |                               +-----------------+</span><br><span class="line">|        |--（C）------- 授权许可 --------&gt;|                 |</span><br><span class="line">| 客户端  |                               |  授权服务器（1    |</span><br><span class="line">|        |&lt;-（D）----- Access Token ----）|                 |</span><br><span class="line">|        |                               +-----------------+</span><br><span class="line">|        |</span><br><span class="line">|        |                               +-----------------+</span><br><span class="line">|        |（-（E）---- Access Token -----&gt;|                 |</span><br><span class="line">|        |                               |   资源服务器（2   |</span><br><span class="line">|        |&lt;-（F）---- 获取受保护的资源 -----|                 |</span><br><span class="line">+--------+                               +-----------------+</span><br></pre></td></tr></table></figure>
+
+<p>图中所示的 抽象 OAuth 2.0 流程描述了四个角色之间的交互，包括以下步骤：</p>
+<p>（A）客户机请求资源所有者（用户）的授权。授权请求可以直接发送给资源所有者(如图所示)，最好通过作为中介的授权服务器间接发送。<strong>简单地说，用户点击登录，会转到登录页面显示给用户。</strong></p>
+<p>（B）客户端接收授权许可，这是表示资源所有者授权的凭据，使用 Oauth2 规范中定义的四种授权类型之一或使用扩展授权类型表示。授权授予类型取决于客户机用于请求授权的方法和授权服务器支持的类型。<strong>简单地说，选择 oauth2 中四种授权模式进行授权。</strong></p>
+<p>（C）客户端通过向授权服务器进行认证并呈现授权授权来请求访问令牌。<strong>简单地说，客户端会向授权服务器使用前面选择的四种方式之一请求认证。</strong></p>
+<p>（D）授权服务器对客户端进行身份验证并验证授权授予，如果有效，则发出访问令牌。<strong>简单地说，授权成功发放令牌。</strong></p>
+<p>（E）客户端从资源服务器请求受保护的资源，并通过呈现访问令牌进行身份验证。<strong>简单地说，携带 令牌 请求资源服务器。</strong></p>
+<p>（F）资源服务器验证访问令牌，如果有效，则为请求服务。<strong>简单地说，如果令牌有效，就允许访问资源。</strong></p>
+<p>（1）授权服务器可以只有一台，一台授权可以发放多个资源服务器。</p>
+<p>（2）资源服务器需要关联一台授权服务器作为资源的保护和认证。</p>
+<p>最为重要的部分为 B 中的 <code>授权许可</code>，它是代表资源所有者的授权（访问其受保护的资源）的<code>凭据</code>，客户端使用该授权来获得访问令牌。该规范定义了四种授权类型——<strong>授权代码、隐式、资源所有者密码凭证和客户端凭证</strong>——以及用于定义其他类型的可扩展性机制（自定义授权）。</p>
+<h2 id="四种授权模式"><a href="#四种授权模式" class="headerlink" title="四种授权模式"></a>四种授权模式</h2><p>客户端必须得到用户的授权（authorization grant），才能获得令牌（access token）。OAuth 2.0定义了四种授权方式如下：</p>
+<ul>
+<li>授权码模式（authorization code）</li>
+<li>密码模式（resource owner password credentials）</li>
+<li>简化模式（implicit）</li>
+<li>客户端模式（client credentials）</li>
+<li>扩展模式（extension）</li>
+</ul>
+<p>最为常用的为第一、二种，我们这篇文章也只会完成第一二种，四种具体请参考 <span class="exturl" data-url="aHR0cDovL3d3dy5ydWFueWlmZW5nLmNvbS9ibG9nLzIwMTQvMDUvb2F1dGhfMl8wLmh0bWw=">阮一峰 理解OAuth 2.0<i class="fa fa-external-link-alt"></i></span> ，请注意详细看文章的 <code>名词定义</code> 模块。阮一峰老师的文章已经写的很清楚了，但是我依旧还是需要指明一下我们即将开始的第一二种的 api 设计。</p>
+<div class="note warning"><p>注意：以下 api 设计为 spring security 提供实现，并不是 oauth2 的标准 api 实现</p>
+</div>
+
+<p>不过在那之前，我们先来了解一下 <strong>客户端的加密</strong></p>
+<h2 id="客户端加密"><a href="#客户端加密" class="headerlink" title="客户端加密"></a>客户端加密</h2><p>在 spring security oauth 中，推荐加密我们的客户端信息，客户端和授权服务器建立适合授权服务器安全要求的客户端认证方法。授权服务器可以接受满足其安全要求的任何形式的客户端身份验证。一般来说我们使用的是 <code>密码验证</code> 的方式加密我们的客户端信息。</p>
+<p>推荐的方式是使用 HTTP Basic ，我们需要设置以下参数，当设置成功以后将客户端凭证加密存放在请求头中去请求授权信息，参数如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">client_id</td>
+<td align="center">REQUIRED</td>
+<td align="center">客户端 id</td>
+</tr>
+<tr>
+<td align="center">client_secret</td>
+<td align="center">REQUIRED</td>
+<td align="center">客户端密码，如果客户机secret是空字符串，则客户机可以省略该参数</td>
+</tr>
+</tbody></table>
+<p>当我们请求的时候，需要设置相应的客户端认证信息，并存放在请求头中，设置方法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Authorization: Basic client_id：client_secret base64编码</span><br><span class="line">eg:</span><br><span class="line">client_id:web</span><br><span class="line">client_secret:secret</span><br><span class="line">加密“web:secret” 得到 “QmFzaWMgd2ViOnNlY3JldA==”</span><br><span class="line">授权请求头中需要携带如下键值对：</span><br><span class="line">Authorization: Basic QmFzaWMgd2ViOnNlY3JldA==</span><br></pre></td></tr></table></figure>
+
+<p>这是保证客户端安全十分重要的一环，强烈推荐对客户端进行加密！</p>
+<h3 id="授权码模式"><a href="#授权码模式" class="headerlink" title="授权码模式"></a>授权码模式</h3><p>他是一种流程最为严密，安全性最高的授权模式，主要为以下几个步骤：</p>
+<div class="note warning"><p>注意：以下所有请求都必须在请求头中携带上一点中的客户端加密信息！</p>
+</div>
+
+<ol>
+<li>用户进入应用，携带一个 <code>重定向应用地址</code> 到 <strong>授权服务器</strong> 进行登录，在登录成功并且用户同意授权以后，授权服务携带一个生成的 <strong>授权码</strong> 重定向到指定的 <code>重定向应用地址</code> 。</li>
+<li>应用携带接收到的 <strong>授权码</strong> 再次去请求 <strong>授权服务器</strong>，在验证成功后，验证服务器下发 token。</li>
+</ol>
+<p>所以需要两个请求，在 spring security oauth2 中，api 如下，我们将这些 api 称为 <code>端点</code>：</p>
+<h3 id="授权端点"><a href="#授权端点" class="headerlink" title="授权端点"></a>授权端点</h3><ul>
+<li>&#x2F;oauth&#x2F;authorize：授权端点，通过此端点跳转到 <strong>授权服务器</strong> 进行认证，完成第一个请求。携带如下参数：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">response_type</td>
+<td align="center">REQUIRED</td>
+<td align="center">必须为 code</td>
+</tr>
+<tr>
+<td align="center">client_id</td>
+<td align="center">REQUIRED</td>
+<td align="center">客户端的 id</td>
+</tr>
+<tr>
+<td align="center">redirect_uri</td>
+<td align="center">OPTIONAL</td>
+<td align="center">获取授权码后重定向地址</td>
+</tr>
+<tr>
+<td align="center">scope</td>
+<td align="center">OPTIONAL</td>
+<td align="center">申请的权限范围</td>
+</tr>
+<tr>
+<td align="center">state</td>
+<td align="center">RECOMMENDED</td>
+<td align="center">客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值，推荐。</td>
+</tr>
+</tbody></table>
+<p>授权成功的情况，会携带以下两个参数重定向到到 redirect_uri 中：</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必有</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">code</td>
+<td align="center">REQUIRED</td>
+<td align="center">授权服务器生成的授权代码。授权代码必须在发布后不久过期，以降低泄漏的风险。最大授权代码生命周期为10分钟</td>
+</tr>
+<tr>
+<td align="center">state</td>
+<td align="center">REQUIRED</td>
+<td align="center">如果上一步中提供 state 参数，会原封不动地返回这个值。</td>
+</tr>
+</tbody></table>
+<div class="note warning"><p>注意：官网中给出的解释 code 有 RECOMMENDED 推荐的情况，但是我没找到如何使用，所以没写。</p>
+</div>
+
+<p>授权失败的情况分为两种</p>
+<ol>
+<li>如果请求由于重定向URI丢失、无效或不匹配而失败，或者如果客户端标识符丢失或无效，授权服务器应通知资源所有者错误，并且<strong>不得自动将用户代理重定向到无效的重定向URI</strong>。</li>
+<li>如果资源所有者拒绝访问请求，或者如果请求由于除了丢失或无效重定向URI以外的原因而失败，则授权服务器通过使用 application&#x2F;x-www-form-urlencoded 格式<strong>向重定向 URI 的查询组件添加以下参数来通知客户端</strong>，参数如下：(对于 spring ，目前没有遇到 error_uri 属性)</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必有</th>
+<th align="center">值</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">error</td>
+<td align="center">REQUIRED</td>
+<td align="center">invalid_request</td>
+<td align="center">请求缺少必需的参数，包括无效的参数值，不止一次地包含参数，或者存在其他形式的异常。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">unauthorized_client</td>
+<td align="center">未授权客户端使用此方法请求授权代码。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">access_denied</td>
+<td align="center">资源所有者或授权服务器拒绝了该请求。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">unsupported_response_type</td>
+<td align="center">授权服务器不支持使用此方法获取授权代码。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">invalid_scope</td>
+<td align="center">请求的作用域无效、未知或格式不正确。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">server_error</td>
+<td align="center">授权服务器遇到意外情况，无法满足请求。(此错误代码是必需的，因为500内部服务器错误HTTP状态代码不能通过HTTP重定向返回给客户端。)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">temporarily_unavailable</td>
+<td align="center">由于服务器暂时过载或维护，授权服务器当前无法处理该请求。(此错误代码是必需的，因为503服务不可用的HTTP状态代码不能通过HTTP重定向返回给客户端。)</td>
+</tr>
+<tr>
+<td align="center">error_description</td>
+<td align="center">OPTIONAL</td>
+<td align="center"></td>
+<td align="center">提供附加信息的人类可读ASCII [USASCII]文本，用于帮助客户端开发人员理解所发生的错误。</td>
+</tr>
+<tr>
+<td align="center">error_uri</td>
+<td align="center">OPTIONAL</td>
+<td align="center"></td>
+<td align="center">一种带有错误信息的可读网页的URI标识，用于向客户端开发人员提供有关错误的附加信息。</td>
+</tr>
+</tbody></table>
+<h3 id="令牌端点"><a href="#令牌端点" class="headerlink" title="令牌端点"></a>令牌端点</h3><ul>
+<li>&#x2F;oauth&#x2F;token：令牌端点，通过上一步获取到的 <strong>授权码</strong> 验证与生成令牌，完成第二个请求，携带如下参数：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">grant_type</td>
+<td align="center">REQUIRED</td>
+<td align="center">使用的授权模式，值固定为&quot;authorization_code&quot;</td>
+</tr>
+<tr>
+<td align="center">code</td>
+<td align="center">REQUIRED</td>
+<td align="center">上一步获得的授权码</td>
+</tr>
+<tr>
+<td align="center">redirect_uri</td>
+<td align="center">REQUIRED</td>
+<td align="center">重定向URI，必须与上一步中的该参数值保持一致</td>
+</tr>
+<tr>
+<td align="center">client_id</td>
+<td align="center">REQUIRED</td>
+<td align="center">客户端的 id</td>
+</tr>
+<tr>
+<td align="center">scope</td>
+<td align="center">RECOMMENDED</td>
+<td align="center">授权范围，必须与第一步相同</td>
+</tr>
+</tbody></table>
+<p>如果访问令牌请求有效且经过授权，授权服务器将发出访问令牌和可选的刷新令牌，可以得到如下响应参数：</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必有</th>
+<th align="center">描述</th>
+<th align="center">是否有实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">access_token</td>
+<td align="center">REQUIRED</td>
+<td align="center">授权服务器颁发的访问令牌</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">token_type</td>
+<td align="center">REQUIRED</td>
+<td align="center">令牌类型，该值大小写不敏感，可以是bearer类型或mac类型</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">expires_in</td>
+<td align="center">RECOMMENDED</td>
+<td align="center">过期时间，单位为秒</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">refresh_token</td>
+<td align="center">OPTIONAL</td>
+<td align="center">表示更新令牌，用来获取下一次的访问令牌</td>
+<td align="center">是，需要设置</td>
+</tr>
+<tr>
+<td align="center">scope</td>
+<td align="center">OPTIONAL</td>
+<td align="center">权限范围，如果有，则与客户端申请的范围一致</td>
+<td align="center">是</td>
+</tr>
+</tbody></table>
+<p>如果请求客户端身份验证失败或无效，授权服务器将返回错误响应，授权服务器使用HTTP 400（错误请求）状态代码进行响应（除非另有说明），并在响应中包含以下参数：</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必有</th>
+<th align="center">值</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">error</td>
+<td align="center">REQUIRED</td>
+<td align="center">invalid_request</td>
+<td align="center">请求缺少必需的参数，包含不受支持的参数值(授权类型除外)，重复参数，包含多个凭据，使用多个机制来验证客户端，或者格式不正确。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">invalid_client</td>
+<td align="center">客户端身份验证失败(例如，未知客户端、不包含客户端身份验证或不支持的身份验证方法)。授权服务器可以返回一个超文本传输协议401(未授权)状态码，以指示支持哪些超文本传输协议认证方案。如果客户端试图通过“授权”请求头字段进行身份验证，授权服务器必须用一个HTTP 401(未授权)状态代码进行响应，并包括与客户端使用的身份验证方案相匹配的“WWW-Authenticate”响应头字段。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">invalid_grant</td>
+<td align="center">所提供的授权授予(例如，授权代码、资源所有者凭证)或刷新令牌无效、过期、已撤销、不匹配授权请求中使用的重定向URI，或已向其他客户机发出。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">unauthorized_client</td>
+<td align="center">经过身份验证的客户端无权使用此授权授权类型。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">unsupported_grant_type</td>
+<td align="center">授权服务器不支持授权授权类型。</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">invalid_scope</td>
+<td align="center">请求的范围无效、未知、格式错误或超出了资源所有者授予的范围。</td>
+</tr>
+<tr>
+<td align="center">error_description</td>
+<td align="center">OPTIONAL</td>
+<td align="center">-</td>
+<td align="center">提供附加信息的人类可读ASCII [USASCII]文本，用于帮助客户端开发人员理解所发生的错误。</td>
+</tr>
+<tr>
+<td align="center">error_uri</td>
+<td align="center">OPTIONAL</td>
+<td align="center">-</td>
+<td align="center">一种带有错误信息的可读网页的URI标识，用于向客户端开发人员提供有关错误的附加信息。</td>
+</tr>
+</tbody></table>
+<h2 id="密码模式"><a href="#密码模式" class="headerlink" title="密码模式"></a>密码模式</h2><p>这种模式可以理解成我们普通应用的用户名密码登录，在第三方接入的时候不建议使用这种模式，但是如果是自己的应用，那么这种模式是最为简单方便快捷的了。步骤只有一个：</p>
+<div class="note warning"><p>注意：以下所有请求都必须在请求头中携带上面所说的客户端加密信息！</p>
+</div>
+
+<ul>
+<li>用户携带用户名密码请求授权服务器，验证通过后下发令牌</li>
+</ul>
+<p>他只需要一个请求，所以她只有一个令牌端点：</p>
+<h3 id="令牌端点-1"><a href="#令牌端点-1" class="headerlink" title="令牌端点"></a>令牌端点</h3><ul>
+<li>&#x2F;oauth&#x2F;token：令牌端点，携带如下参数请求即可：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">请求参数</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">grant_type</td>
+<td align="center">REQUIRED</td>
+<td align="center">使用的密码模式，值固定为&quot;password&quot;</td>
+</tr>
+<tr>
+<td align="center">username</td>
+<td align="center">REQUIRED</td>
+<td align="center">用户名</td>
+</tr>
+<tr>
+<td align="center">password</td>
+<td align="center">REQUIRED</td>
+<td align="center">密码</td>
+</tr>
+<tr>
+<td align="center">scope</td>
+<td align="center">OPTIONAL</td>
+<td align="center">请求权限范围</td>
+</tr>
+</tbody></table>
+<p>请求成功和失败的响应同授权码模式。</p>
+<h2 id="安全考虑"><a href="#安全考虑" class="headerlink" title="安全考虑"></a>安全考虑</h2><div class="note warning"><p>注意：以下所有请求都必须在请求头中携带上面所说的客户端加密信息！</p>
+</div>
+
+<p>作为一个灵活且可扩展的框架，OAuth 的安全考虑取决于许多因素。spring security oauth 为我们提供了一些默认的端点如下：</p>
+<ul>
+<li>&#x2F;oauth&#x2F;authorize：授权端点</li>
+<li>&#x2F;oauth&#x2F;token：令牌端点</li>
+<li>&#x2F;oauth&#x2F;token：令牌端点也同时拥有刷新用户的功能，请求参数如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">grant_type</td>
+<td align="center">REQUIRED</td>
+<td align="center">固定值为“refresh_token”</td>
+</tr>
+<tr>
+<td align="center">refresh_token</td>
+<td align="center">REQUIRED</td>
+<td align="center">请求到 token 时传过来的 refresh_token</td>
+</tr>
+</tbody></table>
+<ul>
+<li>&#x2F;oauth&#x2F;confirm_access：用户确认授权提交端点</li>
+<li>&#x2F;oauth&#x2F;error：授权服务错误信息端点</li>
+<li>&#x2F;oauth&#x2F;check_token：用于资源服务访问的令牌解析端点，请求参数如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">参数名称</th>
+<th align="center">是否必填</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">token</td>
+<td align="center">REQUIRED</td>
+<td align="center">得到的有效的令牌</td>
+</tr>
+</tbody></table>
+<ul>
+<li>&#x2F;oauth&#x2F;token_key：提供公有密匙的端点，如果你使用JWT令牌的话</li>
+</ul>
+<h2 id="技术选型"><a href="#技术选型" class="headerlink" title="技术选型"></a>技术选型</h2><ul>
+<li>核心框架：spring boot</li>
+<li>构建工具：maven</li>
+<li>应用框架：spring boot data jpa</li>
+<li>数据库：mysql</li>
+<li>web： spring boot web</li>
+<li>测试框架：junit5、spring boot test</li>
+<li>开发工具：idea</li>
+<li>安全框架：spring security oauth2</li>
+</ul>
+<h2 id="在这之前"><a href="#在这之前" class="headerlink" title="在这之前"></a>在这之前</h2><p>我们需要对项目的基本初始化，也就是使用 idea 创建我们 spring boot 项目</p>
+<p><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/5.png" loading="lazy"><br><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/6.png" loading="lazy"><br><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/7.png" loading="lazy"><br><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/8.png" loading="lazy"><br><img src="/images/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%B8%80%EF%BC%89/9.png" loading="lazy"></p>
+<p>可选，配置阿里云国内源仓库</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--远程依赖库--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--阿里云主仓库，代理了maven central和jcenter仓库--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://maven.aliyun.com/repository/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--阿里云代理Spring 官方仓库--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>spring-milestones<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Spring Milestones<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://maven.aliyun.com/repository/spring<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--远程插件库--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">pluginRepositories</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--阿里云代理Spring 插件仓库--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">pluginRepository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>spring-plugin<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>spring-plugin<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://maven.aliyun.com/repository/spring-plugin<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">pluginRepository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">pluginRepositories</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<div class="note warning"><p>注意：请自行配置 lombok 支持！！！</p>
+</div>
+
+<p>这样，我们的父项目基本就构建完成了</p>
+<p>我们下一篇回来完成第二件事，spring security oauth2 自动配置实现。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"><i class="fa fa-tag"></i> Spring</a>
+              <a href="/tags/Security/" rel="tag"><i class="fa fa-tag"></i> Security</a>
+              <a href="/tags/Oauth2/" rel="tag"><i class="fa fa-tag"></i> Oauth2</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/hexo%E7%9B%B8%E5%85%B3/" rel="prev" title="hexo相关">
+                  <i class="fa fa-chevron-left"></i> hexo相关
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/Spring-Security-Oauth2-%E4%BB%8E%E9%9B%B6%E5%88%B0%E4%B8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E8%B7%B5%EF%BC%88%E4%BA%8C%EF%BC%89%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%AE%9E%E7%8E%B0/" rel="next" title="Spring Security Oauth2 从零到一完整实践（二）自动配置实现">
+                  Spring Security Oauth2 从零到一完整实践（二）自动配置实现 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><span class="exturl" data-url="aHR0cHM6Ly9iZWlhbi5taWl0Lmdvdi5jbg==">蜀ICP备 19003348号-2 </span>
+  </div>
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">isee.wang</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">113k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:43</span>
+  </span>
+</div><div class="footer-custom">
+Theme source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLXRoZW1lLW5leHQ=">here</span>&nbsp;
+Website source code <span class="exturl theme-link" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG8tbmV4dC9oZXhvLW5leHQuZ2l0aHViLmlv">here</span>
+</div>
+
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <span class="exturl github-corner" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Nkd3h3L3RoZW1lLW5leHQtZG9jcw==" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></span>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.8/medium-zoom.min.js" integrity="sha256-7PhEpEWEW0XXQ0k6kQrPKwuoIomz8R8IYyuU1Qew4P8=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/next-boot.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/pjax.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/search/local-search.min.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.4.3/mermaid.min.js","integrity":"sha256-e0o3JYsdjqKajf9eOe22FhioYSz9WofRY4dLKo3F6do="}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/tags/mermaid.min.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/math/mathjax.min.js"></script>
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"cdwxw","count":true,"i18n":{"disqus":"disqus"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.17.0/source/js/third-party/comments/disqus.min.js"></script>
+
+</body>
+</html>
